@@ -3,15 +3,19 @@ from definite_integral import DefiniteIntegralCalculator
 from formatter import Formatter
 from validator import Validator
 from function_parser import FunctionParser
+from visualizer import Visualizer
+
 
 def main():
     fmt = Formatter()
     val = Validator()
     parser = FunctionParser()
+    vis = Visualizer()
 
     while True:
         print("1. Неопределенный интеграл")
         print("2. Определенный интеграл")
+        print("3. Построить график первообразной")
         print("0. Выход")
 
         mode = input("Ваш выбор: ")
@@ -19,16 +23,18 @@ def main():
         if mode == '0':
             break
 
-        if mode not in ['1', '2']:
+        if mode not in ['1', '2', '3']:
             print("Ошибка выбора\n")
             continue
 
         while True:
             expr = input("Введите функцию f(x): ")
             valid, msg = val.validate_function(expr)
+
             if not valid:
                 print(msg)
                 continue
+
             break
 
         expr = parser.to_evaluable(expr)
@@ -42,9 +48,10 @@ def main():
             else:
                 print("Результат:", fmt.format_indefinite(result))
 
-        else:
+        elif mode == '2':
             while True:
                 a_str = input("Нижний предел: ")
+
                 try:
                     a = float(a_str)
                 except ValueError:
@@ -52,6 +59,7 @@ def main():
                     continue
 
                 b_str = input("Верхний предел: ")
+
                 try:
                     b = float(b_str)
                 except ValueError:
@@ -63,6 +71,7 @@ def main():
                     continue
 
                 n_str = input("Количество разбиений n: ")
+
                 try:
                     if '.' in n_str:
                         raise ValueError
@@ -86,7 +95,18 @@ def main():
             else:
                 print("Результат:", fmt.format_definite(value))
 
+        elif mode == '3':
+            calc = IndefiniteIntegralCalculator(expr)
+            result = calc.calculate()
+
+            if result is None:
+                print("Невозможно построить график")
+            else:
+                print("Первообразная:", result)
+                vis.plot_antiderivative(result)
+
         print()
+
 
 if __name__ == "__main__":
     main()
