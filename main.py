@@ -47,6 +47,14 @@ def main():
                 print("Для данной функции аналитическое решение недоступно")
             else:
                 print("Результат:", fmt.format_indefinite(result))
+            calc = IndefiniteIntegralCalculator(expr)
+            result = calc.calculate()
+
+            if result is None:
+                print("Невозможно построить график")
+            else:
+                print("Первообразная:", result)
+                vis.plot_antiderivative(result)
 
         elif mode == '2':
             while True:
@@ -94,6 +102,15 @@ def main():
                 print("Измените пределы интегрирования или функцию и попробуйте снова.")
             else:
                 print("Результат:", fmt.format_definite(value))
+
+            calc = IndefiniteIntegralCalculator(expr)
+            result = calc.calculate()
+
+            if result is None:
+                print("Невозможно построить график")
+            else:
+                print("Первообразная:", result)
+                vis.plot_antiderivative(result)
 
         elif mode == '3':
             calc = IndefiniteIntegralCalculator(expr)

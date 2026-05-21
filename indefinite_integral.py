@@ -155,5 +155,8 @@ class IndefiniteIntegralCalculator(Integration):
                     return None
 
             return " + ".join(results).replace("+ -", "- ")
-        except Exception:
+        except ValueError:
+            return None
+
+        except re.error:
             return None

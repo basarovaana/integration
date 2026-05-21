@@ -112,5 +112,25 @@ class TestValidator(unittest.TestCase):
         self.assertFalse(valid)
         self.assertEqual(msg, "Ошибка синтаксиса")
 
+    def test_sqrt_forbidden(self):
+        valid, msg = self.val.validate_function("sqrt(x)")
+        self.assertFalse(valid)
+
+    def test_log_forbidden(self):
+        valid, msg = self.val.validate_function("log(x)")
+        self.assertFalse(valid)
+
+    def test_empty_input(self):
+        valid, msg = self.val.validate_function("")
+        self.assertFalse(valid)
+
+    def test_invalid_symbols(self):
+        valid, msg = self.val.validate_function("x @ 2")
+        self.assertFalse(valid)
+
+    def test_double_operators(self):
+        valid, msg = self.val.validate_function("x++2")
+        self.assertFalse(valid)
+
 if __name__ == "__main__":
     unittest.main()

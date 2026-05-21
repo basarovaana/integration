@@ -16,35 +16,35 @@ class Visualizer:
 
         try:
             y = eval(expr)
+            z = np.zeros_like(x)
 
             fig, ax = plt.subplots(figsize=(10, 10))
 
-            ax.plot(x, y, linewidth=2)
+            ax = fig.add_subplot(111, projection='3d')
 
-            ax.spines['left'].set_position('zero')
-            ax.spines['bottom'].set_position('zero')
-
-            ax.spines['right'].set_color('none')
-            ax.spines['top'].set_color('none')
+            ax.plot(x, y, z, linewidth=2)
 
             ax.set_xlim(-20, 20)
             ax.set_ylim(-20, 20)
+            ax.set_zlim(-20, 20)
+
+            ax.set_xlabel('x')
+            ax.set_ylabel('y')
+            ax.set_zlabel('z')
 
             ax.set_aspect('equal')
 
             ax.grid(True)
 
-            plt.subplots_adjust(
-                left=0.03,
-                right=0.97,
-                top=0.95,
-                bottom=0.05
-            )
-
             plt.title("График первообразной", fontsize=18)
 
             plt.show()
 
-        except Exception as e:
-            print("Ошибка при построении графика")
-            print(e)
+        except SyntaxError:
+            print("Ошибка синтаксиса при построении графика")
+
+        except NameError:
+            print("Ошибка имени переменной при построении графика")
+
+        except ValueError:
+            print("Ошибка значения при построении графика")
