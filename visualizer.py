@@ -4,11 +4,14 @@ from function_parser import FunctionParser
 
 
 class Visualizer:
-
+    '''Строит трёхмерный график первообразной'''
     def __init__(self):
+        '''Инициализирует визуализатор, создаёт экземпляр FunctionParser'''
         self.parser = FunctionParser()
 
-    def plot_antiderivative(self, expr):
+    def plot_antiderivative(self, expr: str) -> None:
+        '''Строит 3D-график функции на отрезке [-20, 20] с 2000 точками.
+         Отображает окно matplotlib с подписями осей и заголовком.'''
 
         expr = self.parser.to_evaluable(expr)
 

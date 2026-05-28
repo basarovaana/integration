@@ -4,10 +4,14 @@ from fractions import Fraction
 
 
 class IndefiniteIntegralCalculator(Integration):
-    def __init__(self, expr):
+    '''Вычисляет неопределённый интеграл рациональной функции аналитически'''
+    def __init__(self, expr: str) -> None:
+        '''Инициализирует калькулятор. Удаляет пробелы и заменяет ^ на **'''
         self.expr = expr.replace(" ", "").replace("^", "**")
 
-    def format_term(self, coef, power):
+    def format_term(self, coef, power: int) -> str:
+        '''Форматирует один член многочлена в строку для вывода'''
+        coef = Fraction(coef).limit_denominator(10 ** 9)
         if coef == 0:
             return ""
         if isinstance(coef, Fraction):
@@ -35,7 +39,12 @@ class IndefiniteIntegralCalculator(Integration):
             return f"{coef_str}x"
         return f"{coef_str}x^{power}"
 
-    def _apply_power_rule(self, a, n):
+    def _apply_power_rule(self, a, n: int) -> str:
+        '''Применяет правило интегрирования степенной функции: ∫a·x^ndx = a/(n+1)·x^(n+1).
+        При n = -1 возвращает логарифм.'''
+        a = Fraction(a).limit_denominator(10 ** 9)
+        if a == 0:
+            return "0"
         if n == -1:
             if a == 1:
                 prefix = ""
@@ -47,11 +56,12 @@ class IndefiniteIntegralCalculator(Integration):
         new_n = n + 1
         return self.format_term(Fraction(a, new_n), new_n)
 
-    def integrate_term(self, term):
+    def integrate_term(self, term: str) -> str | None:
+        '''Интегрирует один член выражения: a/(x+b), a/x**n, a*x**n, число.'''
         term = term.strip()
         if not term: return None
 
-        log_match = re.fullmatch(r'([\-+]?\d*)/\(x([\-+]\d+)\)', term) # a/(x+b)
+        log_match = re.fullmatch(r'([\-+]?\d*\.?\d*)/\(x([\-+]\d+)\)', term)# a/(x+b)
         if log_match:
             raw_a, b = log_match.groups()
 
@@ -60,7 +70,7 @@ class IndefiniteIntegralCalculator(Integration):
             elif raw_a == '-':
                 a = -1
             else:
-                a = int(raw_a)
+                a = Fraction(raw_a).limit_denominator(10**9)
 
             if a == 1:
                 prefix = ''
@@ -70,13 +80,13 @@ class IndefiniteIntegralCalculator(Integration):
                 prefix = str(a)
             return f"{prefix}ln|x{b}|"
 
-        div_match = re.fullmatch(r'([\-+]?\d+)/x(\*\*(\d+))?', term)# a/x**n
+        div_match = re.fullmatch(r'([\-+]?\d*\.?\d+)/x(\*\*(\d+))?', term)# a/x**n
         if div_match:
-            a = int(div_match.group(1))
+            a = float(div_match.group(1))
             n = -int(div_match.group(3)) if div_match.group(3) else -1
             return self._apply_power_rule(a, n)
 
-        pow_match = re.fullmatch(r'([\-+]?\d*)\*?x(\*\*(\-?\d+))?', term)# a*x**n
+        pow_match = re.fullmatch(r'([\-+]?\d*\.?\d*)\*?x(\*\*(\-?\d+))?', term)# a*x**n
         if pow_match:
             raw_a = pow_match.group(1)
             if raw_a == '' or raw_a == '+':
@@ -84,17 +94,19 @@ class IndefiniteIntegralCalculator(Integration):
             elif raw_a == '-':
                 a = -1
             else:
-                a = int(raw_a)
+                a = float(raw_a)
 
             n = int(pow_match.group(3)) if pow_match.group(3) else 1
             return self._apply_power_rule(a, n)
 
-        if re.fullmatch(r'[\-+]?\d+', term):# число
-            return self.format_term(int(term), 1)
+        if re.fullmatch(r'[\-+]?\d*\.?\d+', term):# число
+            coef = Fraction(term).limit_denominator(10 ** 9)
+            return self.format_term(coef, 1)
 
         return None
 
-    def _split_rational(self, expr):
+    def _split_rational(self, expr: str) -> list[str] | None:
+        '''Разбивает выражение вида (многочлен)/x**n на список отдельных членов после деления'''
         match = re.match(r'\((.*)\)/(x(\*\*(\d+))?)', expr) #(что-то)/x**n
         if match:
             num_content, den_str, _, m_str = match.groups()
@@ -119,7 +131,7 @@ class IndefiniteIntegralCalculator(Integration):
                 elif k_part == '-':
                     k = -1
                 else:
-                    k = int(k_part)
+                    k = float(k_part)
 
                 new_pow = n - m
                 if new_pow == 0:
@@ -131,7 +143,8 @@ class IndefiniteIntegralCalculator(Integration):
             return final_terms
         return None
 
-    def calculate(self):
+    def calculate(self) -> str | None:
+        '''Основной метод. Разбирает выражение на члены, интегрирует каждый и собирает результат'''
         try:
             if '/' in self.expr:
                 if re.fullmatch(r'[\-+]?\d*/\(x[\-+]\d+\)', self.expr):
@@ -142,7 +155,8 @@ class IndefiniteIntegralCalculator(Integration):
                     results = [self.integrate_term(t) for t in rational]
                     return " + ".join(filter(None, results)).replace("+ -", "- ")
 
-            terms = re.findall(r'[+\-]?(?:(?<!\*)\d+/x(?:\*\*\d+)?|x(?:\*\*-?\d+)?|(?<!\*)\d+)', self.expr)
+            terms = re.findall( r'[+\-]?(?:(?<!\*)\d*\.?\d+/x(?:\*\*\d+)?|x(?:\*\*-?\d+)?|(?<!\*)\d*\.?\d+)',
+                               self.expr)
             if not terms:
                 terms = [self.expr]
 

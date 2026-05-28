@@ -2,16 +2,20 @@ from integration import Integration
 import math
 
 class DefiniteIntegralCalculator(Integration):
-    def __init__(self, expr, lower_limit, upper_limit, intervals_count=1000):
+    '''Вычисляет определённый интеграл методом трапеций'''
+    def __init__(self, expr: str, lower_limit: float, upper_limit: float, intervals_count: int = 1000):
+        '''Инициализирует калькулятор определённого интеграла'''
         self.expr = expr
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
         self.intervals_count = intervals_count
 
-    def f(self, x):
+    def f(self, x: float) -> float:
+        '''Вычисляет значение подынтегральной функции в точке x'''
         return eval(self.expr, {"x": x})
 
-    def calculate(self):
+    def calculate(self) -> tuple[float | None, str]:
+        '''Вычисляет определённый интеграл методом трапеций'''
         try:
             step_size = (self.upper_limit - self.lower_limit) / self.intervals_count
             result = 0.5 * (self.f(self.lower_limit) + self.f(self.upper_limit))

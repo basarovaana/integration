@@ -53,7 +53,6 @@ def main():
             if result is None:
                 print("Невозможно построить график")
             else:
-                print("Первообразная:", result)
                 vis.plot_antiderivative(result)
 
         elif mode == '2':
@@ -109,7 +108,6 @@ def main():
             if result is None:
                 print("Невозможно построить график")
             else:
-                print("Первообразная:", result)
                 vis.plot_antiderivative(result)
 
         elif mode == '3':

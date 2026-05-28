@@ -35,6 +35,40 @@ class TestIndefiniteIntegral(unittest.TestCase):
         self.assertEqual(self.calc("1/(x+1)"), "ln|x+1|")
         self.assertEqual(self.calc("3/(x-5)"), "3ln|x-5|")
 
+    def test_log_match_negative_coef(self):
+        self.assertEqual(self.calc("-1/(x+2)"), "-ln|x+2|")
+
+    def test_log_match_negative_prefix(self):
+        self.assertEqual(self.calc("-3/(x-1)"), "-3ln|x-1|")
+
+    def test_split_rational_negative_const(self):
+        result = self.calc("(-x+3)/x")
+        self.assertIsNotNone(result)
+        self.assertIn("-x + 3ln|x|", result)
+
+    def test_split_rational_negative_k(self):
+        result = self.calc("(-3x^2+x)/x^2")
+        self.assertIn("-3x + ln|x|", result)
+
+    def test_format_term_power_zero(self):
+        calc = indefinite_integral.IndefiniteIntegralCalculator("(3x+3)/x**2")
+        result = calc.calculate()
+        self.assertIsNotNone(result)
+
+    def test_unrecognized_expr_returns_none(self):
+        calc = indefinite_integral.IndefiniteIntegralCalculator("???")
+        self.assertIsNone(calc.calculate())
+
+    def test_unsupported_term_returns_none(self):
+        calc = indefinite_integral.IndefiniteIntegralCalculator("unknownterm")
+        self.assertIsNone(calc.calculate())
+
+    def test_value_error_returns_none(self):
+        calc = indefinite_integral.IndefiniteIntegralCalculator("0/x")
+        result = calc.calculate()
+        self.assertIn("0", result)
+
+
 class TestDefiniteIntegral(unittest.TestCase):
     def setUp(self):
         self.calc_class = definite_integral.DefiniteIntegralCalculator
@@ -73,6 +107,18 @@ class TestDefiniteIntegral(unittest.TestCase):
         value, err = calc.calculate()
         self.assertAlmostEqual(value, 0.0, places=5)
 
+    def test_zero_in_middle(self):
+        calc = self.calc_class("1/x", -1, 1, 100)
+        value, err = calc.calculate()
+        self.assertIn("Ошибка", err)
+
+    def test_invalid_expr(self):
+        calc = self.calc_class("abc", 1, 2, 10)
+        value, err = calc.calculate()
+        self.assertIsNone(value)
+        self.assertTrue(len(err) > 0)
+
+
 class TestParser(unittest.TestCase):
     def setUp(self):
         self.parser = function_parser.FunctionParser()
@@ -88,6 +134,7 @@ class TestParser(unittest.TestCase):
 
     def test_cyrillic_fix(self):
         self.assertEqual(self.parser.to_evaluable("х^2"), "x**2")
+
 
 class TestValidator(unittest.TestCase):
     def setUp(self):
@@ -105,7 +152,7 @@ class TestValidator(unittest.TestCase):
     def test_forbidden_functions(self):
         valid, msg = self.val.validate_function("sin(x)")
         self.assertFalse(valid)
-        self.assertIn("только рациональные функции", msg)
+        self.assertIn("Ошибка: допускаются только числовые функции в коэффициентах", msg)
 
     def test_syntax_errors(self):
         valid, msg = self.val.validate_function("(x+1")
@@ -131,6 +178,12 @@ class TestValidator(unittest.TestCase):
     def test_double_operators(self):
         valid, msg = self.val.validate_function("x++2")
         self.assertFalse(valid)
+
+    def test_float_power_forbidden(self):
+        valid, msg = self.val.validate_function("x**2.5")
+        self.assertFalse(valid)
+        self.assertIn("рациональные функции", msg)
+
 
 if __name__ == "__main__":
     unittest.main()
